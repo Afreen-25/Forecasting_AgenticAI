@@ -1,0 +1,183 @@
+{
+  "name": "Chat with a database using AI",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Try me out\nClick the 'chat' button at the bottom of the canvas and paste in:\n\n_Which tables are available?_"
+      },
+      "id": "129ba2c8-c92e-4e8b-bac1-49a67459ad3d",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -160,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "This workflow uses a Postgres DB, but you could swap it for a MySQL or SQLite one",
+        "height": 505,
+        "width": 677,
+        "color": 7
+      },
+      "id": "1308021a-ac7d-4e84-8c38-2245b2f87b63",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "c2b9b4d0-230c-4871-b491-3bba5348e517",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [
+        48,
+        48
+      ],
+      "webhookId": "1c0d08f0-abd0-4bdc-beef-370c27aae1a0",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $fromAI('query', 'SQL query to execute', 'string') }}",
+        "options": {}
+      },
+      "id": "7bd52d0a-62df-45c4-8b76-27ac4188242f",
+      "name": "Postgres",
+      "type": "n8n-nodes-base.postgresTool",
+      "position": [
+        512,
+        272
+      ],
+      "typeVersion": 2.5,
+      "credentials": {
+        "postgres": {
+          "id": "x1uYS1KHqtRGEYMl",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a SQL assistant for PostgreSQL. NEVER use MySQL syntax like SHOW TABLES. \n\nTo list tables always use:\nSELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';\n\nTables available: year_2009_2010 and year_2010_2011\nColumns: \"Invoice\", \"StockCode\", \"Description\", \"Quantity\", \"InvoiceDate\", \"Price\", \"Customer ID\", \"Country\"\n\nAlways use double quotes around column names. Always use LIMIT 5. Revenue = \"Quantity\" * \"Price\".\nAlways show the actual data",
+          "maxIterations": 28
+        }
+      },
+      "id": "d56c0977-7cab-492a-9310-b25819ae3e62",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        272,
+        48
+      ],
+      "typeVersion": 1.8,
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        288,
+        256
+      ],
+      "id": "9dc70183-3676-4fd2-b88e-7bd9d6663304",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        144,
+        256
+      ],
+      "id": "cd79fa7e-902f-487b-98f9-80ca205e895a",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "cMG9NxnVqIhJRc3u",
+          "name": "OpenAI account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Postgres": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6bfc7d2a-17d0-4e24-b61d-c479de44ec2f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "11b582594f695ed635ca1aa7c846707beb44836c6876c19743a2d6b708750cd6"
+  },
+  "id": "uwfZbHjrymsEr6R0",
+  "tags": []
+}
